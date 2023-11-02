@@ -4,7 +4,7 @@ provider "aws" {
 }
 
 resource "aws_elastic_beanstalk_application" "this" {
-  name        = "sample-app"
+  name        = "sample-app-1"
   description = "A sample Elastic Beanstalk application"
 }
 
