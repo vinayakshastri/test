@@ -23,6 +23,54 @@ resource "aws_iam_role" "eb_instance_role" {
   })
 }
 
+# Create a VPC
+resource "aws_vpc" "this" {
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "my-vpc"
+  }
+}
+
+# Create an Internet Gateway
+resource "aws_internet_gateway" "this" {
+  vpc_id = aws_vpc.this.id
+}
+
+# Create Subnets
+resource "aws_subnet" "this" {
+  count             = 2
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = "10.0.${count.index + 1}.0/24"
+  map_public_ip_on_launch = true  # Instances launched into this subnet should have a public IP
+  availability_zone = element(data.aws_availability_zones.available.names, count.index)
+
+  tags = {
+    Name = "my-subnet-${count.index + 1}"
+  }
+}
+
+# Create a Route Table
+resource "aws_route_table" "this" {
+  vpc_id = aws_vpc.this.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.this.id
+  }
+}
+
+# Associate the Route Table with the Subnets
+resource "aws_route_table_association" "this" {
+  count          = 2
+  subnet_id      = element(aws_subnet.this.*.id, count.index)
+  route_table_id = aws_route_table.this.id
+}
+
+# Get available AZs
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
 resource "aws_iam_role_policy_attachment" "eb_instance_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier"
   role       = aws_iam_role.eb_instance_role.name
@@ -48,5 +96,17 @@ resource "aws_elastic_beanstalk_environment" "this" {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "IamInstanceProfile"
     value     = aws_iam_instance_profile.eb_instance_profile.name
+  }
+
+  setting {
+    namespace = "aws:ec2:vpc"
+    name      = "VPCId"
+    value     = aws_vpc.this.id
+  }
+
+  setting {
+    namespace = "aws:ec2:vpc"
+    name      = "Subnets"
+    value     = join(",", aws_subnet.this.*.id)
   }
 }
