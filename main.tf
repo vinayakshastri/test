@@ -1,6 +1,6 @@
 # main.tf
 provider "aws" {
-  region = "us-west-2"
+  region = "ap-southeast-2"
 }
 
 resource "aws_elastic_beanstalk_application" "this" {
