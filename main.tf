@@ -27,7 +27,7 @@ resource "aws_iam_role" "eb_instance_role" {
 resource "aws_vpc" "this" {
   cidr_block = "10.0.0.0/16"
   tags = {
-    Name = "my-vpc"
+    Name = "eb-vpc"
   }
 }
 
@@ -45,7 +45,7 @@ resource "aws_subnet" "this" {
   availability_zone = element(data.aws_availability_zones.available.names, count.index)
 
   tags = {
-    Name = "my-subnet-${count.index + 1}"
+    Name = "eb-subnet-${count.index + 1}"
   }
 }
 
