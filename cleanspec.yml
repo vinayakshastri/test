@@ -1,0 +1,16 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Installing dependencies..."
+      - apt-get update && apt-get install -y unzip
+      - curl -o terraform.zip https://releases.hashicorp.com/terraform/1.0.11/terraform_1.0.11_linux_amd64.zip
+      - unzip terraform.zip && mv terraform /usr/local/bin/
+  pre_build:
+    commands:
+      - echo "Initializing Terraform..."
+  build:
+    commands:
+      - echo "Applying Terraform Destroy..."
+      - terraform destroy -auto-approve
