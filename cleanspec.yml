@@ -10,6 +10,8 @@ phases:
   pre_build:
     commands:
       - echo "Initializing Terraform..."
+      - terraform init
+      - terraform validate
   build:
     commands:
       - echo "Applying Terraform Destroy..."
