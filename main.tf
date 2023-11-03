@@ -4,7 +4,7 @@ provider "aws" {
 }
 
 resource "aws_elastic_beanstalk_application" "this" {
-  name        = "sample-app-1"
+  name        = "test-app"
   description = "A sample Elastic Beanstalk application"
 }
 
@@ -82,7 +82,7 @@ resource "aws_iam_instance_profile" "eb_instance_profile" {
 }
 
 resource "aws_elastic_beanstalk_environment" "this" {
-  name        = "sample-app-env"
+  name        = "test-app-env"
   application = aws_elastic_beanstalk_application.this.name
   solution_stack_name = "64bit Amazon Linux 2023 v4.1.0 running Docker"
 
