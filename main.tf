@@ -3,6 +3,30 @@ provider "aws" {
   region = "ap-southeast-2"
 }
 
+# Create an S3 bucket for storing the application code
+resource "aws_s3_bucket" "app_bucket" {
+  bucket = "my-testapp-bucket"
+}
+
+# Zip and upload the application code to the S3 bucket
+resource "aws_s3_bucket_object" "app_object" {
+  bucket = aws_s3_bucket.app_bucket.bucket
+  key    = "my-app.zip"
+  source = "${path.module}/app.zip"  # Local path to your application ZIP file
+}
+
+# Create an application version
+resource "aws_elastic_beanstalk_application_version" "my_app_version" {
+  name        = "v1"
+  application = aws_elastic_beanstalk_application.this.name
+
+  # Point to the S3 location of the application code
+  source_bundle {
+    bucket = aws_s3_bucket.app_bucket.bucket
+    key    = aws_s3_bucket_object.app_object.key
+  }
+}
+
 resource "aws_elastic_beanstalk_application" "this" {
   name        = "test-app"
   description = "A sample Elastic Beanstalk application"
@@ -84,6 +108,7 @@ resource "aws_iam_instance_profile" "eb_instance_profile" {
 resource "aws_elastic_beanstalk_environment" "this" {
   name        = "test-app-env"
   application = aws_elastic_beanstalk_application.this.name
+  version_label       = aws_elastic_beanstalk_application_version.my_app_version.name
   solution_stack_name = "64bit Amazon Linux 2023 v4.1.0 running Docker"
 
   setting {
