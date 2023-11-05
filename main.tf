@@ -3,28 +3,18 @@ provider "aws" {
   region = "ap-southeast-2"
 }
 
-# Create an S3 bucket for storing the application code
-resource "aws_s3_bucket" "app_bucket" {
-  bucket = "my-testapp-bucket"
+resource "aws_s3_object" "object" {
+  bucket = "tf-source-code"
+  key    = "app"
+  source = "app.zip"
+  etag = filemd5("app.zip")
 }
 
-# Zip and upload the application code to the S3 bucket
-resource "aws_s3_bucket_object" "app_object" {
-  bucket = aws_s3_bucket.app_bucket.bucket
-  key    = "my-app.zip"
-  source = "${path.module}/app.zip"  # Local path to your application ZIP file
-}
-
-# Create an application version
 resource "aws_elastic_beanstalk_application_version" "my_app_version" {
-  name        = "v1"
+  name        = "my-application-version"
   application = aws_elastic_beanstalk_application.this.name
-
-  # Point to the S3 location of the application code
-  source_bundle {
-    bucket = aws_s3_bucket.app_bucket.bucket
-    key    = aws_s3_bucket_object.app_object.key
-  }
+  bucket      = aws_s3_object.object.bucket
+  key         = aws_s3_object.object.key
 }
 
 resource "aws_elastic_beanstalk_application" "this" {
